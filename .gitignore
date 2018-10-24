@@ -1,0 +1,10 @@
+.DS_Store
+/data/.DS_Store
+/doc/.DS_Store
+/figs/.DS_Store
+/lib/.DS_Store
+/output/.DS_Store
+/data/*.csv
+/data/HR
+/data/LR
+/doc/main.nb.html
