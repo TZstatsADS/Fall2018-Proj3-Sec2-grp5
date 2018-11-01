@@ -4,7 +4,10 @@
 /figs/.DS_Store
 /lib/.DS_Store
 /output/.DS_Store
+/output/*.RData
 /data/train_set/*.csv
 /data/train_set/HR
 /data/train_set/LR
 /doc/main.nb.html
+/data/test_set
+/data/*.RData

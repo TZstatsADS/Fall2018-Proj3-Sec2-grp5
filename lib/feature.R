@@ -9,7 +9,7 @@
 # helper function to get the value for the neighbor 8 pixels - central pixel
 get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
   
-  if( Given_Row_Index <= 0 | Given_Row_Index >= nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index >= ncol(All_value) ){
+  if( Given_Row_Index <= 0 | Given_Row_Index > nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index > ncol(All_value) ){
     return(NA)
   }
   
@@ -57,8 +57,8 @@ Extract_Feature <- function(LR_Image, HR_Image, Color_Chanel, Sample_Size){
     LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
 
     LR_Neighbor_value <- LR_Neighbor_value - LR_center
-    NA_index <- which(is.na(LR_Neighbor_value))
-    LR_Neighbor_value[NA_index] <- 0
+    LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
+    LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
     
     Result_LR_Neighbor_value[index, ] <- LR_Neighbor_value
     
@@ -70,6 +70,26 @@ Extract_Feature <- function(LR_Image, HR_Image, Color_Chanel, Sample_Size){
     HR_4 <- get_pixel_value(HR_image_data_chanel, 2*Row_Index, 2*Col_Index)
     sub_pixels <- c(HR_1, HR_2, HR_3, HR_4)
     Result_sub_pixels[index,] <- sub_pixels
+    
+    # print(which(is.na(sub_pixels)))
+    # 
+    if(length(which(is.na(sub_pixels)))>0){
+      print("========")
+      print(nrow(LR_image_data_chanel))
+      print(ncol(LR_image_data_chanel))
+      print("========")
+      print(nrow(HR_image_data_chanel))
+      print(ncol(HR_image_data_chanel))
+      print("========")
+      print(Row_Index)
+      print(Col_Index)
+      print(2*Row_Index-1)
+      print(2*Col_Index-1)
+      print(2*Row_Index)
+      print(2*Col_Index-1)
+      print(2*Row_Index-1)
+      print("========")
+    }
     
   }
   return(list(LR_Neighbor_value = Result_LR_Neighbor_value, sub_pixels = Result_sub_pixels)) 
@@ -144,7 +164,10 @@ feature <- function(LR_dir, HR_dir, n_points=1000){
         ### read LR/HR image pairs
         Mat_Index <- Mat_Index + 1
         
+        
       }
+      
+      cat("file ", i)
       
       
   }

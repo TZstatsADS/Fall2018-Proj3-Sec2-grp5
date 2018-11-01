@@ -5,6 +5,47 @@
 ### Author: Chengliang Tang
 ### Project 3
 
+source("../lib/test.R")
+# helper function to get the value for pixel
+get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
+  
+  if( Given_Row_Index <= 0 | Given_Row_Index > nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index > ncol(All_value) ){
+    return(NA)
+  }
+  
+  else{
+    return(All_value[Given_Row_Index, Given_Col_Index])
+  }
+  
+}
+
+# helper function to get the value for the neighbor 8 pixels - central pixel
+get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
+
+  Row_Index <- arrayInd(Given_Index, dim(Chanel_Data))[1]
+  Col_Index <- arrayInd(Given_Index, dim(Chanel_Data))[2]
+  
+  LR_up_left <- get_pixel_value(Chanel_Data, Row_Index-1, Col_Index-1)
+  LR_left <- get_pixel_value(Chanel_Data, Row_Index, Col_Index-1)
+  LR_bottom_left <- get_pixel_value(Chanel_Data, Row_Index+1, Col_Index-1)
+  LR_up <- get_pixel_value(Chanel_Data, Row_Index-1, Col_Index)
+  LR_center <- get_pixel_value(Chanel_Data, Row_Index, Col_Index)
+  LR_bottom <- get_pixel_value(Chanel_Data, Row_Index+1, Col_Index)
+  LR_up_right <- get_pixel_value(Chanel_Data, Row_Index-1, Col_Index+1)
+  LR_right <- get_pixel_value(Chanel_Data, Row_Index, Col_Index+1)
+  LR_bottom_right <- get_pixel_value(Chanel_Data, Row_Index+1, Col_Index+1)
+  
+  LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
+  
+  LR_Neighbor_value <- LR_Neighbor_value - LR_center
+  LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
+  LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
+  
+  return(LR_Neighbor_value)
+
+}
+
+
 superResolution <- function(LR_dir, HR_dir, modelList){
   
   ### Construct high-resolution images from low-resolution images with trained predictor
@@ -18,18 +59,57 @@ superResolution <- function(LR_dir, HR_dir, modelList){
   
   ### read LR/HR image pairs
   for(i in 1:n_files){
-    imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
-    pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", i), ".jpg")
-    featMat <- array(NA, c(dim(imgLR)[1] * dim(imgLR)[2], 8, 3))
     
-    ### step 1. for each pixel and each channel in imgLR:
-    ###           save (the neighbor 8 pixels - central pixel) in featMat
-    ###           tips: padding zeros for boundary points
-    
-    ### step 2. apply the modelList over featMat
-    predMat <- test(modelList, featMat)
-    ### step 3. recover high-resolution from predMat and save in HR_dir
+    if(i == 3){
+      
+      imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
+      pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", i), ".jpg")
+      featMat <- array(NA, c(dim(imgLR)[1] * dim(imgLR)[2], 8, 3))
+      
+      Red_Chanel_Image_Data <- imageData(imgLR)[ , , 1]
+      Green_Chanel_Image_Data <- imageData(imgLR)[ , , 2]
+      Blue_Chanel_Image_Data <- imageData(imgLR)[ , , 3]
+      
+
+      
+      ### step 1. for each pixel and each channel in imgLR:
+      ###           save (the neighbor 8 pixels - central pixel) in featMat
+      ###           tips: padding zeros for boundary points
+      
+      for (Index in c(1:length(Red_Chanel_Image_Data))) {
+        
+        featMat[Index, , 1] <- get_neighbor_pixel_value(Red_Chanel_Image_Data, Index)
+        
+        featMat[Index, , 2] <- get_neighbor_pixel_value(Green_Chanel_Image_Data, Index)
+        
+        featMat[Index, , 3] <- get_neighbor_pixel_value(Blue_Chanel_Image_Data, Index)
+        
+      }
+
+      ### step 2. apply the modelList over featMat
+      predMat <- test(modelList, featMat)
+      # print(predMat)
+      HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
+      
+      ### step 3. recover high-resolution from predMat and save in HR_dir
+      writeImage(HR_Image, "../data/test_set/HR/sample.jpeg")
+      
+    }
+
     
     
   }
 }
+
+
+
+test_dir <- "../data/test_set/" # This will be modified for different data sets.
+test_LR_dir <- paste(test_dir, "LR/", sep="")
+test_HR_dir <- paste(test_dir, "HR/", sep="")
+
+setwd("~/Desktop/Fall18/GR5243_ADS/Assignment3/Fall2018-Proj3-Sec2-grp5/doc")
+
+superResolution(test_LR_dir, test_HR_dir, fit_train)
+
+
+
