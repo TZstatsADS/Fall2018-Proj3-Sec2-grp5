@@ -184,7 +184,7 @@ feature <- function(LR_dir, HR_dir, n_points=1000){
       
     }
     
-    cat("file", i)
+    cat("file", i, "\n")
 
       
       

@@ -94,7 +94,7 @@ if(run.feature.train){
   label_train <- dat_train$label
 }
 
-# save(dat_train, file="../output/feature_train.RData")
+save(dat_train, file="../output/feature_train.RData")
 ```
 
 

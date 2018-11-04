@@ -70,8 +70,6 @@ superResolution <- function(LR_dir, HR_dir, modelList){
   
   ### read LR/HR image pairs
   for(i in 1:n_files){
-    
-    if(i == 3){
       
       imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
       pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", i), ".jpg")
@@ -132,12 +130,6 @@ superResolution <- function(LR_dir, HR_dir, modelList){
         New_Image_Data[2*Row_i, 2*Col_i,3] <- New_Image_Data[2*Row_i, 2*Col_i,3] + Blue_Center_LR
         
       }
-      
-      
-      
-      print(length(predMat))
-      print(length(New_Image_Data))
-      
 
       # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
       HR_Image <- Image(New_Image_Data, colormode='Color')
@@ -147,21 +139,7 @@ superResolution <- function(LR_dir, HR_dir, modelList){
       ### step 3. recover high-resolution from predMat and save in HR_dir
       writeImage(HR_Image, "../data/test_set/HR/sample.jpg")
       
-    }
-
-    
+      cat("Image", i, "Done !")
   }
 }
-
-
-
-test_dir <- "../data/test_set/" # This will be modified for different data sets.
-test_LR_dir <- paste(test_dir, "LR/", sep="")
-test_HR_dir <- paste(test_dir, "HR/", sep="")
-
-setwd("~/Desktop/Fall18/GR5243_ADS/Assignment3/Fall2018-Proj3-Sec2-grp5/doc")
-
-superResolution(test_LR_dir, test_HR_dir, fit_train)
-
-
 
