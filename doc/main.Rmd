@@ -20,6 +20,7 @@ if(!require("gbm")){
 
 library("EBImage")
 library("gbm")
+library("xgboost")
 ```
 
 
@@ -54,7 +55,7 @@ In this chunk, we have a set of controls for the evaluation experiments.
 
 ```{r exp_setup}
 run.cv=TRUE # run cross-validation on the training set
-K <- 2  # number of CV folds
+K <- 5  # number of CV folds
 run.feature.train=TRUE # process features for training set
 run.test=TRUE # run evaluation on an independent test set
 run.feature.test=TRUE # process features for test set
@@ -63,7 +64,7 @@ run.feature.test=TRUE # process features for test set
 Using cross-validation or independent test set evaluation, we compare the performance of models with different specifications. In this example, we use GBM with different `depth`. In the following chunk, we list, in a vector, setups (in this case, `depth`) corresponding to models that we will compare. In your project, you might compare very different classifiers. You can assign them numerical IDs and labels specific to your project. 
 
 ```{r model_setup}
-model_values <- seq(2, 3)
+model_values <- seq(2, 5, 1)
 model_labels = paste("GBM with depth =", model_values)
 ```
 
@@ -93,7 +94,7 @@ if(run.feature.train){
   label_train <- dat_train$label
 }
 
-# save(dat_train, file="./output/feature_train.RData")
+# save(dat_train, file="../output/feature_train.RData")
 ```
 
 
@@ -155,7 +156,8 @@ par_best <- list(depth=model_best)
 * Train the model with the entire training set using the selected model (model parameter) via cross-validation.
 ```{r final_train}
 tm_train=NA
-tm_train <- system.time(fit_train <- train(feat_train, label_train, par_best))
+# tm_train <- system.time(fit_train <- train(feat_train, label_train, par_best))
+tm_train <- system.time(fit_train <- train(feat_train, label_train))
 save(fit_train, file="../output/fit_train.RData")
 ```
 

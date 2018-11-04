@@ -37,10 +37,21 @@ get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
   
   LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
   
+  # if(Given_Index == 500){
+  #   print("======")
+  #   print(LR_Neighbor_value)
+  #   
+  # }
+  
+
   LR_Neighbor_value <- LR_Neighbor_value - LR_center
   LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
   LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
-  
+  # if(Given_Index == 500){
+  #   print("======")
+  #   print(LR_Neighbor_value)
+  #   
+  # }
   return(LR_Neighbor_value)
 
 }
@@ -70,7 +81,8 @@ superResolution <- function(LR_dir, HR_dir, modelList){
       Green_Chanel_Image_Data <- imageData(imgLR)[ , , 2]
       Blue_Chanel_Image_Data <- imageData(imgLR)[ , , 3]
       
-
+      # print(imageData(imgLR)[,,1])
+      # print(dim(Red_Chanel_Image_Data))
       
       ### step 1. for each pixel and each channel in imgLR:
       ###           save (the neighbor 8 pixels - central pixel) in featMat
@@ -85,18 +97,58 @@ superResolution <- function(LR_dir, HR_dir, modelList){
         featMat[Index, , 3] <- get_neighbor_pixel_value(Blue_Chanel_Image_Data, Index)
         
       }
-
+      
+      # print(featMat)
+      
       ### step 2. apply the modelList over featMat
       predMat <- test(modelList, featMat)
-      # print(predMat)
-      HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
       
+      New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3))
+      
+      for (i in c(1:length(Red_Chanel_Image_Data))) {
+        
+        Row_i <- arrayInd(i, dim(Red_Chanel_Image_Data))[1]
+        Col_i <- arrayInd(i, dim(Red_Chanel_Image_Data))[2]
+        
+        # In Red Channel
+        Red_Center_LR <- Red_Chanel_Image_Data[Row_i, Col_i]
+        New_Image_Data[2*Row_i, 2*Col_i-1,1] <- New_Image_Data[2*Row_i, 2*Col_i-1,1] + Red_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i,1] <- New_Image_Data[2*Row_i-1, 2*Col_i,1] + Red_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i-1,1] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,1] + Red_Center_LR
+        New_Image_Data[2*Row_i, 2*Col_i,1] <- New_Image_Data[2*Row_i, 2*Col_i,1] + Red_Center_LR
+        
+        # Green
+        Green_Center_LR <- Green_Chanel_Image_Data[Row_i, Col_i]
+        New_Image_Data[2*Row_i, 2*Col_i-1,2] <- New_Image_Data[2*Row_i, 2*Col_i-1,2] + Green_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i,2] <- New_Image_Data[2*Row_i-1, 2*Col_i,2] + Green_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i-1,2] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,2] + Green_Center_LR
+        New_Image_Data[2*Row_i, 2*Col_i,2] <- New_Image_Data[2*Row_i, 2*Col_i,2] + Green_Center_LR
+        
+        # Blue
+        Blue_Center_LR <- Blue_Chanel_Image_Data[Row_i, Col_i]
+        New_Image_Data[2*Row_i, 2*Col_i-1,3] <- New_Image_Data[2*Row_i, 2*Col_i-1,3] + Blue_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i,3] <- New_Image_Data[2*Row_i-1, 2*Col_i,3] + Blue_Center_LR
+        New_Image_Data[2*Row_i-1, 2*Col_i-1,3] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,3] + Blue_Center_LR
+        New_Image_Data[2*Row_i, 2*Col_i,3] <- New_Image_Data[2*Row_i, 2*Col_i,3] + Blue_Center_LR
+        
+      }
+      
+      
+      
+      print(length(predMat))
+      print(length(New_Image_Data))
+      
+
+      # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
+      HR_Image <- Image(New_Image_Data, colormode='Color')
+      
+      
+      # print(HR_Image)
       ### step 3. recover high-resolution from predMat and save in HR_dir
-      writeImage(HR_Image, "../data/test_set/HR/sample.jpeg")
+      writeImage(HR_Image, "../data/test_set/HR/sample.jpg")
       
     }
 
-    
     
   }
 }

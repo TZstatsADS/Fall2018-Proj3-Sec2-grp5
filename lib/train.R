@@ -39,11 +39,20 @@ train <- function(dat_train, label_train, par=NULL){
     fit_gbm <- gbm.fit(x=featMat, y=labMat,
                        n.trees=200,
                        distribution="gaussian",
-                       interaction.depth=depth, 
+                       interaction.depth=depth,
                        bag.fraction = 0.5,
                        verbose=FALSE)
+    # fit_xgboost <- xgboost(data = featMat, label = labMat, 
+    #                        max_depth = 2, 
+    #                        eta = 1, 
+    #                        nthread = 2, 
+    #                        nrounds = 2, 
+    #                        objective = "binary:logistic")
+    # print(fit_xgboost)
+    # print(predict(fit_xgboost, featMat))
     best_iter <- gbm.perf(fit_gbm, method="OOB", plot.it = FALSE)
     modelList[[i]] <- list(fit=fit_gbm, iter=best_iter)
+    print(modelList)
   }
   
   return(modelList)
