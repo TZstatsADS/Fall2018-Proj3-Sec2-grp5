@@ -11,3 +11,4 @@
 /doc/main.nb.html
 /data/test_set
 /data/*.RData
+/doc/.Rhistory
