@@ -100,6 +100,7 @@ superResolution <- function(LR_dir, HR_dir, modelList){
       
       ### step 2. apply the modelList over featMat
       predMat <- test(modelList, featMat)
+      # predMat <- test_xgboost(modelList, featMat)
       
       New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3))
       

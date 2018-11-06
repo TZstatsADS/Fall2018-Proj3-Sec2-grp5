@@ -1,6 +1,6 @@
 ---
-title: "Project 3 - Example Main Script"
-author: "Chengliang Tang, Tian Zheng"
+title: "Project 3 - Main Script"
+author: "Group 5"
 output: html_notebook
 ---
 
@@ -110,8 +110,6 @@ Call the train model and test model from library.
   + Input: an R object that contains a trained classifier.
   + Output: an R object of response predictions on the test set. If there are multiple classifiers under evaluation, there should be multiple sets of label predictions. 
 ```{r loadlib}
-source("../lib/train.R")
-source("../lib/test.R")
 source("../lib/train_xgboost.R")
 source("../lib/test_xgboost.R")
 ```
@@ -119,28 +117,27 @@ source("../lib/test_xgboost.R")
 #### Model selection with cross-validation
 * Do model selection by choosing among different values of training model parameters, that is, the interaction depth for GBM in this example. 
 ```{r runcv, message=FALSE, warning=FALSE}
-source("../lib/cross_validation.R")
 source("../lib/cross_validation_xgboost.R")
 
 if(run.cv){
-  err_cv <- array(dim=c(length(model_values), 2))
+  err_cv_xgboost <- array(dim=c(length(model_values), 2))
   for(k in 1:length(model_values)){
     cat("k=", k, "\n")
-    err_cv[k,] <- cv.function(feat_train, label_train, model_values[k], K)
+    err_cv_xgboost[k,] <- cv.function_xgboost(feat_train, label_train, model_values[k], K)
   }
-  save(err_cv, file="../output/err_cv.RData")
+  save(err_cv_xgboost, file="../output/err_cv_xgboost.RData")
 }
 ```
 
 Visualize cross-validation results. 
 ```{r cv_vis}
 if(run.cv){
-  load("../output/err_cv.RData")
-  plot(model_values, err_cv[,1], xlab="Interaction Depth", ylab="CV Error",
+  load("../output/err_cv_xgboost.RData")
+  plot(model_values, err_cv_xgboost[,1], xlab="Interaction Depth", ylab="CV Error",
        main="Cross Validation Error", type="n", ylim=c(0, 0.25))
-  points(model_values, err_cv[,1], col="blue", pch=16)
-  lines(model_values, err_cv[,1], col="blue")
-  arrows(model_values, err_cv[,1]-err_cv[,2], model_values, err_cv[,1]+err_cv[,2], 
+  points(model_values, err_cv_xgboost[,1], col="blue", pch=16)
+  lines(model_values, err_cv_xgboost[,1], col="blue")
+  arrows(model_values, err_cv_xgboost[,1]-err_cv_xgboost[,2], model_values, err_cv_xgboost[,1]+err_cv_xgboost[,2], 
         length=0.1, angle=90, code=3)
 }
 ```
@@ -150,7 +147,7 @@ if(run.cv){
 ```{r best_model}
 model_best=model_values[1]
 if(run.cv){
-  model_best <- model_values[which.min(err_cv[,1])]
+  model_best <- model_values[which.min(err_cv_xgboost[,1])]
 }
 
 par_best <- list(depth=model_best)
@@ -159,9 +156,9 @@ par_best <- list(depth=model_best)
 * Train the model with the entire training set using the selected model (model parameter) via cross-validation.
 ```{r final_train}
 tm_train=NA
-tm_train <- system.time(fit_train <- train(feat_train, label_train, par_best))
-# tm_train <- system.time(fit_train <- train(feat_train, label_train))
-save(fit_train, file="../output/fit_train.RData")
+# tm_train <- system.time(fit_train <- train(feat_train, label_train, par_best))
+tm_train <- system.time(fit_train_xgboost <- train_xgboost(feat_train, label_train))
+save(fit_train_xgboost, file="../output/fit_train_xgboost.RData")
 ```
 
 ### Step 5: Super-resolution for test images
@@ -172,15 +169,15 @@ Feed the final training model with the completely holdout testing data.
   + Input: an R object that contains tuned predictors.
   + Output: construct high-resolution versions for each low-resolution test image.
 ```{r superresolution}
-source("../lib/superResolution.R")
+source("../lib/superResolution_xgboost.R")
 test_dir <- "../data/test_set/" # This will be modified for different data sets.
 test_LR_dir <- paste(test_dir, "LR/", sep="")
 test_HR_dir <- paste(test_dir, "HR/", sep="")
 
 tm_test=NA
 if(run.test){
-  load(file="../output/fit_train.RData")
-  tm_test <- system.time(superResolution(test_LR_dir, test_HR_dir, fit_train))
+  load(file="../output/fit_train_xgboost.RData")
+  tm_test <- system.time(superResolution_xgboost(test_LR_dir, test_HR_dir, fit_train_xgboost))
 }
 ```
 
