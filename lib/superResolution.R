@@ -137,7 +137,7 @@ superResolution <- function(LR_dir, HR_dir, modelList){
       
       # print(HR_Image)
       ### step 3. recover high-resolution from predMat and save in HR_dir
-      writeImage(HR_Image, "../data/test_set/HR/sample.jpg")
+      writeImage(HR_Image, pathHR)
       
       cat("Image", i, "Done !")
   }
