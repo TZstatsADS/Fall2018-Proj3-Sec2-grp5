@@ -5,7 +5,7 @@
 ### Author: Chengliang Tang
 ### Project 3
 
-source("../lib/test.R")
+source("../lib/test_xgboost.R")
 # helper function to get the value for pixel
 get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
   
@@ -57,6 +57,16 @@ get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
 }
 
 
+# Get center pixel
+get_center_pixel_value <- function(Chanel_Data, Given_Index){
+  Row_Index <- arrayInd(Given_Index, dim(Chanel_Data))[1]
+  Col_Index <- arrayInd(Given_Index, dim(Chanel_Data))[2]
+  return(get_pixel_value(Chanel_Data, Row_Index, Col_Index))
+}
+
+
+
+
 superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
   
   ### Construct high-resolution images from low-resolution images with trained predictor
@@ -72,8 +82,10 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
   for(i in 1:n_files){
     
     imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
+    cat(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
     pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", i), ".jpg")
     featMat <- array(NA, c(dim(imgLR)[1] * dim(imgLR)[2], 8, 3))
+    
     
     Red_Chanel_Image_Data <- imageData(imgLR)[ , , 1]
     Green_Chanel_Image_Data <- imageData(imgLR)[ , , 2]
@@ -90,49 +102,74 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
       
       featMat[Index, , 1] <- get_neighbor_pixel_value(Red_Chanel_Image_Data, Index)
       
+      
+      
       featMat[Index, , 2] <- get_neighbor_pixel_value(Green_Chanel_Image_Data, Index)
+      
+      
       
       featMat[Index, , 3] <- get_neighbor_pixel_value(Blue_Chanel_Image_Data, Index)
       
+      
+      
     }
-    
-    # print(featMat)
     
     ### step 2. apply the modelList over featMat
     predMat <- test_xgboost(modelList, featMat)
     
-    New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3))
+    # print(predMat)
     
-    for (i in c(1:length(Red_Chanel_Image_Data))) {
+    New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*dim(imgLR)[2], 4, 3))
+    
+    HR_Image_Data <- array(data = NA, c(dim(imgLR)[1]*2 , dim(imgLR)[2]*2, 3))
+    
+    print(dim(HR_Image_Data))
+    
+    # Then for each color channel
+    
+    # for (colorChannel in c(1:3)) {
+    #   
+    #   New_Image_Data[, , 1] <- New_Image_Data[, , 1]  + featMat_center[, , 1]
+    #   
+    #   New_Image_Data[, , 2] <- New_Image_Data[, , 2]  + featMat_center[, , 2]
+    #   
+    #   New_Image_Data[, , 3] <- New_Image_Data[, , 3]  + featMat_center[, , 3]
+    #   
+    # }
+    
+    for (index in c(1:nrow(New_Image_Data[,,1]))) {
       
-      Row_i <- arrayInd(i, dim(Red_Chanel_Image_Data))[1]
-      Col_i <- arrayInd(i, dim(Red_Chanel_Image_Data))[2]
+      Row_i <- arrayInd(index, dim(Red_Chanel_Image_Data))[1]
+      Col_i <- arrayInd(index, dim(Red_Chanel_Image_Data))[2]
+      # print(index)
+      # print(Row_i)
+      # print(Col_i)
+      # print(2*Row_i)
+      # print(2*Col_i)
+      # print(HR_Image_Data[2*Row_i, 2*Col_i-1,1])
       
       # In Red Channel
-      Red_Center_LR <- Red_Chanel_Image_Data[Row_i, Col_i]
-      New_Image_Data[2*Row_i, 2*Col_i-1,1] <- New_Image_Data[2*Row_i, 2*Col_i-1,1] + Red_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i,1] <- New_Image_Data[2*Row_i-1, 2*Col_i,1] + Red_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i-1,1] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,1] + Red_Center_LR
-      New_Image_Data[2*Row_i, 2*Col_i,1] <- New_Image_Data[2*Row_i, 2*Col_i,1] + Red_Center_LR
+      HR_Image_Data[2*Row_i, 2*Col_i-1,1] <- New_Image_Data[index, 1, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i,1] <- New_Image_Data[index, 2, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i-1,1] <- New_Image_Data[index, 3, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i, 2*Col_i,1] <- New_Image_Data[index, 4, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
       
       # Green
-      Green_Center_LR <- Green_Chanel_Image_Data[Row_i, Col_i]
-      New_Image_Data[2*Row_i, 2*Col_i-1,2] <- New_Image_Data[2*Row_i, 2*Col_i-1,2] + Green_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i,2] <- New_Image_Data[2*Row_i-1, 2*Col_i,2] + Green_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i-1,2] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,2] + Green_Center_LR
-      New_Image_Data[2*Row_i, 2*Col_i,2] <- New_Image_Data[2*Row_i, 2*Col_i,2] + Green_Center_LR
+      HR_Image_Data[2*Row_i, 2*Col_i-1,2] <- New_Image_Data[index, 1, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i,2] <- New_Image_Data[index, 2, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i-1,2] <- New_Image_Data[index, 3, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i, 2*Col_i,2] <- New_Image_Data[index, 4, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
       
       # Blue
-      Blue_Center_LR <- Blue_Chanel_Image_Data[Row_i, Col_i]
-      New_Image_Data[2*Row_i, 2*Col_i-1,3] <- New_Image_Data[2*Row_i, 2*Col_i-1,3] + Blue_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i,3] <- New_Image_Data[2*Row_i-1, 2*Col_i,3] + Blue_Center_LR
-      New_Image_Data[2*Row_i-1, 2*Col_i-1,3] <- New_Image_Data[2*Row_i-1, 2*Col_i-1,3] + Blue_Center_LR
-      New_Image_Data[2*Row_i, 2*Col_i,3] <- New_Image_Data[2*Row_i, 2*Col_i,3] + Blue_Center_LR
+      HR_Image_Data[2*Row_i, 2*Col_i-1,3] <- New_Image_Data[index, 1, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i,3] <- New_Image_Data[index, 2, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i-1, 2*Col_i-1,3] <- New_Image_Data[index, 3, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[2*Row_i, 2*Col_i,3] <- New_Image_Data[index, 4, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
       
     }
     
     # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
-    HR_Image <- Image(New_Image_Data, colormode='Color')
+    HR_Image <- Image(HR_Image_Data, colormode='Color')
     
     
     # print(HR_Image)

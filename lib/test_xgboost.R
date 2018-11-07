@@ -25,8 +25,11 @@ test_xgboost <- function(modelList, dat_test){
     c1 <- (i-1) %% 4 + 1
     c2 <- (i-c1) %/% 4 + 1
     featMat <- dat_test[, , c2]
+    # print(featMat)
+    # print(fit_train$fit)
     ### make predictions
-    predArr[, c1, c2] <- predict(fit_train$fit, newdata=featMat, type="response")
+    predArr[, c1, c2] <- predict(fit_train$fit, newdata=featMat)
+    # print(predArr[, c1, c2])
   }
   return(as.numeric(predArr))
 }
