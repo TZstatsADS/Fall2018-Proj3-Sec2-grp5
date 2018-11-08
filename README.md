@@ -35,7 +35,7 @@ Term: Fall 2018
   + Improved Model:
        + XGBoost and parameter tunning: Zhongce Ji
        + Improve Feature and Speed: Jiaqian Yu
-       + CNN part: Jiayi Cui(equal contributor)
+       + SRCNN model (not selected as improved): Jiayi Cui(equal contributor)
        + Model implementation: Sheng Wang (equal contributor) 
   + Tensorflow bilinear interpolation algorithm: Samuel Kolins(little contributor)
   + Presentation and PPT: Sheng Wang
