@@ -33,7 +33,7 @@ Term: Fall 2018
   + XGBoost 3 by 3: Zhongce Ji, Jiaqian Yu, Sheng Wang
   + XGBoost 5 by 5: Zhongce Ji, Jiaqian Yu
   + CNN: Jiayi Cui, 
-  + Tensorflow: Samuel Kolins(just a little)
+  + Tensorflow bilinear interpolation algorithm: Samuel Kolins
   + Presentation and PPT: Sheng Wang
   + All team members approve our work presented in this GitHub repository including this contributions statement. 
 
