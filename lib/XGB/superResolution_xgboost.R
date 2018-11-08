@@ -7,6 +7,17 @@
 
 source("../lib/XGB/test_xgboost.R")
 # helper function to get the value for pixel
+get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){	
+  
+  if( Given_Row_Index <= 0 | Given_Row_Index > nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index > ncol(All_value) ){	
+    return(NA)	
+  }	
+  
+  else{	
+    return(All_value[Given_Row_Index, Given_Col_Index])	
+  }	
+  
+}
 
 
 # helper function to get the value for the neighbor 8 pixels - central pixel
@@ -64,9 +75,6 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     ### step 1. for each pixel and each channel in imgLR:
     ###           save (the neighbor 8 pixels - central pixel) in featMat
     ###           tips: padding zeros for boundary points
-    
-    
-    print("start predict")
 
     print(Sys.time())
     cl <- makeCluster(3)
@@ -100,22 +108,13 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
 
       
       # In Red Channel
-      HR_Image_Data[2*Row_i-1, 2*Col_i-1,1] <- New_Image_Data[index, 1, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i-1,1] <- New_Image_Data[index, 2, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i-1, 2*Col_i,1] <- New_Image_Data[index, 3, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i,1] <- New_Image_Data[index, 4, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[c(2*Row_i-1,2*Row_i), c(2*Col_i-1,2*Col_i), 1] <- matrix(New_Image_Data[index, , 1], nrow = 2, ncol = 2) + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
       
       # Green
-      HR_Image_Data[2*Row_i-1, 2*Col_i-1,2] <- New_Image_Data[index, 1, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i-1,2] <- New_Image_Data[index, 2, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i-1, 2*Col_i,2] <- New_Image_Data[index, 3, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i,2] <- New_Image_Data[index, 4, 2] + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[c(2*Row_i-1,2*Row_i), c(2*Col_i-1,2*Col_i), 2] <- matrix(New_Image_Data[index, , 2], nrow = 2, ncol = 2) + get_pixel_value(Green_Chanel_Image_Data, Row_i, Col_i)
       
       # Blue
-      HR_Image_Data[2*Row_i-1, 2*Col_i-1,3] <- New_Image_Data[index, 1, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i-1,3] <- New_Image_Data[index, 2, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i-1, 2*Col_i,3] <- New_Image_Data[index, 3, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
-      HR_Image_Data[2*Row_i, 2*Col_i,3] <- New_Image_Data[index, 4, 3] + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
+      HR_Image_Data[c(2*Row_i-1,2*Row_i), c(2*Col_i-1,2*Col_i), 3] <- matrix(New_Image_Data[index, , 3], nrow = 2, ncol = 2) + get_pixel_value(Blue_Chanel_Image_Data, Row_i, Col_i)
       
     }
     
