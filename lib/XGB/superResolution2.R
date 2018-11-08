@@ -5,7 +5,7 @@
 ### Author: Chengliang Tang
 ### Project 3
 
-source("../lib/test.R")
+source("../lib/test_xgboost.R")
 # helper function to get the value for pixel
 # get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
 #   
@@ -104,7 +104,7 @@ superResolution2<- function(LR_dir, HR_dir, modelList){
     
     imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", j), ".jpg"))
     pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", j), ".jpg")
-    featMat <- array(NA, c(dim(imgLR)[1] * dim(imgLR)[2], 8, 3))
+    featMat <- array(NA, c(dim(imgLR)[1] * dim(imgLR)[2], 24, 3))
     
     
     Red_Chanel_Image_Data <- imageData(imgLR)[ , , 1]
@@ -135,7 +135,7 @@ superResolution2<- function(LR_dir, HR_dir, modelList){
     }
     
     ### step 2. apply the modelList over featMat
-    predMat <- test(modelList, featMat)
+    predMat <- test_xgboost(modelList, featMat)
     
     # print(predMat)
     
@@ -196,7 +196,7 @@ superResolution2<- function(LR_dir, HR_dir, modelList){
     ### step 3. recover high-resolution from predMat and save in HR_dir
     writeImage(HR_Image, pathHR)
     
-    cat("Image", i, "Done !")
+    cat("Image", j, "Done !")
   }
 }
 
