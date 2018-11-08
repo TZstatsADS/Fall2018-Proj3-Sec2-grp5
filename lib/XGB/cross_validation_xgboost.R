@@ -5,7 +5,7 @@
 ### Author: Chengliang Tang
 ### Project 3
 
-cv.function_xgboost <- function(X.train, y.train, d, K){
+cv.function_xgboost <- function(X.train, y.train, n, K){
   
   n <- dim(y.train)[1]
   n.fold <- floor(n/K)
@@ -18,7 +18,7 @@ cv.function_xgboost <- function(X.train, y.train, d, K){
     test.data <- X.train[s == i, ,]
     test.label <- y.train[s == i, ,]
     
-    par <- list(depth=d)
+    par <- list(nrounds=n)
     cat("k=", i, "\n")
     fit <- train_xgboost(train.data, train.label, par)
     cat(i, "Train finish","\n")
