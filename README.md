@@ -34,7 +34,7 @@ Term: Fall 2018
   + XGBoost 5 by 5: Zhongce Ji, Jiaqian Yu
   + CNN: Jiayi Cui, 
   + Tensorflow: Samuel Kolins(just a little)
-  + Presentation: Sheng Wang
+  + Presentation and PPT: Sheng Wang
   + All team members approve our work presented in this GitHub repository including this contributions statement. 
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
