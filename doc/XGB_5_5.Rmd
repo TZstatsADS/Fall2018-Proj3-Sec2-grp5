@@ -175,7 +175,7 @@ test_HR_dir <- paste(test_dir, "HR/", sep="")
 tm_test=NA
 if(run.test){
   load(file="../output/XGB_5_5/fit_train_xgboost_5_5.RData")
-  tm_test <- system.time(superResolution2(test_LR_dir, test_HR_dir, fit_train_xgboost))
+  tm_test <- system.time(superResolution2(test_LR_dir, test_HR_dir, fit_train_xgboost_5_5))
 }
 ```
 
