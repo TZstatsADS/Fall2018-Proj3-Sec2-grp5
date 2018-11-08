@@ -24,8 +24,11 @@ train_xgboost <- function(dat_train, label_train, par=NULL){
   ### Train with gradient boosting model
   if(is.null(par)){
     depth <- 3
+    nrounds <- 200
+    
   } else {
     depth <- par$depth
+    nrounds <- par$nrounds
   }
   
   ### the dimension of response arrat is * x 4 x 3, which requires 12 classifiers
@@ -38,9 +41,10 @@ train_xgboost <- function(dat_train, label_train, par=NULL){
     labMat <- label_train[, c1, c2]
 
     fit_xgboost <- xgboost(data = featMat, label = labMat,
-                           max_depth = par$depth,
+                           max_depth = depth,
+                           nthread = 3,
                            eta = 0.5,
-                           nrounds = par$nrounds, verbose = 0)
+                           nrounds = nrounds, verbose = 0)
     cat("i = ", i)
     modelList[[i]] <- list(fit=fit_xgboost)
   }

@@ -1,5 +1,5 @@
 ---
-title: "GBM Baseline"
+title: "XGBoost 5X5"
 output: html_notebook
 ---
 
@@ -17,7 +17,9 @@ if(!require("gbm")){
 
 library("EBImage")
 library("gbm")
+library("xgboost")
 ```
+
 
 ### Step 0: specify directories.
 
@@ -29,7 +31,6 @@ setwd("~/Desktop/Fall18/GR5243_ADS/Assignment3/Fall2018-Proj3-Sec2-grp5/doc")
 # here replace it with your own path or manually set it in RStudio to where this rmd file is located. 
 # use relative path for reproducibility
 ```
-
 
 Provide directories for training images. Low-resolution (LR) image set and High-resolution (HR) image set will be in different subfolders. 
 ```{r}
@@ -60,9 +61,11 @@ run.feature.test=TRUE # process features for test set
 Using cross-validation or independent test set evaluation, we compare the performance of models with different specifications. In this example, we use GBM with different `depth`. In the following chunk, we list, in a vector, setups (in this case, `depth`) corresponding to models that we will compare. In your project, you might compare very different classifiers. You can assign them numerical IDs and labels specific to your project. 
 
 ```{r model_setup}
-model_values <- seq(3, 7, 2)
-model_labels = paste("GBM with depth =", model_values)
+model_values <- c(100, 150, 200, 200)
+model_depth <- c(3, 5, 5, 7)
+model_labels = paste("XGB with depth =", model_values)
 ```
+
 
 ### Step 2: import training images class labels.
 
@@ -106,34 +109,34 @@ Call the train model and test model from library.
   + Input: an R object that contains a trained classifier.
   + Output: an R object of response predictions on the test set. If there are multiple classifiers under evaluation, there should be multiple sets of label predictions. 
 ```{r loadlib}
-source("../lib/GBM_Baseline/train.R")
-source("../lib/GBM_Baseline/test.R")
+source("../lib/XGB/train_xgboost.R")
+source("../lib/XGB/test_xgboost.R")
 ```
 
 #### Model selection with cross-validation
 * Do model selection by choosing among different values of training model parameters, that is, the interaction depth for GBM in this example. 
 ```{r runcv, message=FALSE, warning=FALSE}
-source("../lib/GBM_Baseline/cross_validation.R")
+source("../lib/XGB/cross_validation_xgboost.R")
 
 if(run.cv){
-  err_cv <- array(dim=c(length(model_values), 2))
+  err_cv_xgboost <- array(dim=c(length(model_values), 2))
   for(k in 1:length(model_values)){
     cat("k=", k, "\n")
-    err_cv[k,] <- cv.function(feat_train, label_train, model_values[k], K)
+    err_cv_xgboost[k,] <- cv.function_xgboost(feat_train, label_train, model_values[k], model_depth[k], K)
   }
-  save(err_cv, file="../output/GBM_Baseline/err_cv.RData")
+  save(err_cv_xgboost, file="../output/XGB_3_3/err_cv_xgboost.RData")
 }
 ```
 
 Visualize cross-validation results. 
 ```{r cv_vis}
 if(run.cv){
-  load("../output/GBM_Baseline/err_cv.RData")
-  plot(model_values, err_cv[,1], xlab="Interaction Depth", ylab="CV Error",
+  load("../output/XGB_3_3/err_cv_xgboost.RData")
+  plot(model_values, err_cv_xgboost[,1], xlab="Interaction Depth", ylab="CV Error",
        main="Cross Validation Error", type="n", ylim=c(0, 0.25))
-  points(model_values, err_cv[,1], col="blue", pch=16)
-  lines(model_values, err_cv[,1], col="blue")
-  arrows(model_values, err_cv[,1]-err_cv[,2], model_values, err_cv[,1]+err_cv[,2], 
+  points(model_values, err_cv_xgboost[,1], col="blue", pch=16)
+  lines(model_values, err_cv_xgboost[,1], col="blue")
+  arrows(model_values, err_cv_xgboost[,1]-err_cv_xgboost[,2], model_values, err_cv_xgboost[,1]+err_cv_xgboost[,2], 
         length=0.1, angle=90, code=3)
 }
 ```
@@ -143,22 +146,18 @@ if(run.cv){
 ```{r best_model}
 model_best=model_values[1]
 if(run.cv){
-  model_best <- model_values[which.min(err_cv[,1])]
+  model_best <- model_values[which.min(err_cv_xgboost[,1])]
 }
 
 par_best <- list(depth=model_best)
 ```
 
-
 * Train the model with the entire training set using the selected model (model parameter) via cross-validation.
 ```{r final_train}
 tm_train=NA
-tm_train <- system.time(fit_train <- train(feat_train, label_train, par_best))
-tm_train1 <- system.time(fit_train_depth_1 <- train(feat_train, label_train, list(depth=1)))
-save(fit_train, file="../output/GBM_Baseline/fit_train.RData")
-save(fit_train_depth_1, file="../output/GBM_Baseline/fit_train_depth_1.RData")
+tm_train <- system.time(fit_train_xgboost_3_3 <- train_xgboost(feat_train, label_train, par_best))
+save(fit_train_xgboost_3_3, file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
 ```
-
 
 ### Step 5: Super-resolution for test images
 Feed the final training model with the completely holdout testing data. 
@@ -168,24 +167,14 @@ Feed the final training model with the completely holdout testing data.
   + Input: an R object that contains tuned predictors.
   + Output: construct high-resolution versions for each low-resolution test image.
 ```{r superresolution}
-source("../lib/GBM_Baseline/superResolution.R")
-test_dir <- "../data/test_set/GBM_Baseline/" # This will be modified for different data sets.
+source("../lib/XGB/superResolution_xgboost.R")
+test_dir <- "../data/test_set/XGB_3_3/" # This will be modified for different data sets.
 test_LR_dir <- paste(test_dir, "LR/", sep="")
 test_HR_dir <- paste(test_dir, "HR/", sep="")
 
 tm_test=NA
 if(run.test){
-  load(file="../output/GBM_Baseline/fit_train.RData")
-  tm_test <- system.time(superResolution(test_LR_dir, test_HR_dir, fit_train))
+  load(file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
+  tm_test <- system.time(superResolution_xgboost(test_LR_dir, test_HR_dir, fit_train_xgboost))
 }
 ```
-
-### Summarize Running Time
-Prediction performance matters, so does the running times for constructing features and for training the model, especially when the computation resource is limited. 
-```{r running_time}
-cat("Time for constructing training features=", tm_feature_train[1], "s \n")
-cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
-cat("Time for training model=", tm_train[1], "s \n")
-cat("Time for super-resolution=", tm_test[1], "s \n")
-```
-

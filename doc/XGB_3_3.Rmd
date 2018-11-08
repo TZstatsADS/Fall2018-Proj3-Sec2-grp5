@@ -19,6 +19,7 @@ if(!require("gbm")){
 library("EBImage")
 library("gbm")
 library("xgboost")
+library("doParallel")
 ```
 
 
@@ -175,7 +176,7 @@ test_HR_dir <- paste(test_dir, "HR/", sep="")
 
 tm_test=NA
 if(run.test){
-  load(file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
+  # load(file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
   tm_test <- system.time(superResolution_xgboost(test_LR_dir, test_HR_dir, fit_train_xgboost))
 }
 ```

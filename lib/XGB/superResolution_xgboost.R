@@ -5,7 +5,7 @@
 ### Author: Chengliang Tang
 ### Project 3
 
-source("../lib/test_xgboost.R")
+source("../lib/XGB/test_xgboost.R")
 # helper function to get the value for pixel
 get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
   
@@ -47,14 +47,6 @@ get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
 }
 
 
-# Get center pixel
-get_center_pixel_value <- function(Chanel_Data, Given_Index){
-  Row_Index <- arrayInd(Given_Index, dim(Chanel_Data))[1]
-  Col_Index <- arrayInd(Given_Index, dim(Chanel_Data))[2]
-  return(get_pixel_value(Chanel_Data, Row_Index, Col_Index))
-}
-
-
 superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
   
   ### Construct high-resolution images from low-resolution images with trained predictor
@@ -62,13 +54,16 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
   ### Input: a path for low-resolution images + a path for high-resolution images 
   ###        + a list for predictors
   
-  ### load libraries
-  library("EBImage")
   n_files <- length(list.files(LR_dir))
+  
+  Total_MSE <- c()
+    
+  Total_PSNR <- c()
   
   ### read LR/HR image pairs
   for(i in 1:n_files){
     
+    print(Sys.time())
     imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
     cat(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))
     pathHR <- paste0(HR_dir,  "img", "_", sprintf("%04d", i), ".jpg")
@@ -84,26 +79,32 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     ###           save (the neighbor 8 pixels - central pixel) in featMat
     ###           tips: padding zeros for boundary points
     
-    for (Index in c(1:length(Red_Chanel_Image_Data))) {
-      
-      featMat[Index, , 1] <- get_neighbor_pixel_value(Red_Chanel_Image_Data, Index)
-      
-      
-      
-      featMat[Index, , 2] <- get_neighbor_pixel_value(Green_Chanel_Image_Data, Index)
-      
-      
-      
-      featMat[Index, , 3] <- get_neighbor_pixel_value(Blue_Chanel_Image_Data, Index)
-      
-      
-      
-    }
+    
+    print("start predict")
+    # cl <- makeCluster(3)
+    # registerDoParallel(cl)
+    # foreach(p = 1:3) %dopar% {
+    #   print(do.call(rbind, lapply(c(1:length(imageData(imgLR)[ , , p])), get_neighbor_pixel_value, Chanel_Data = imageData(imgLR)[ , , p])))
+    #   featMat[ , , p] <- do.call(rbind, lapply(c(1:length(imageData(imgLR)[ , , p])), get_neighbor_pixel_value, Chanel_Data = imageData(imgLR)[ , , p]))
+    #   
+    # }
+    # 
+    # print(head(featMat[,,1]))
+    # print(head(featMat[,,2]))
+    # print(head(featMat[,,3]))
+    print(Sys.time())
+    featMat[ , , 1] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Red_Chanel_Image_Data))
+
+    featMat[ , , 2] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Green_Chanel_Image_Data))
+
+    featMat[ , , 3] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Blue_Chanel_Image_Data))
+    print(Sys.time())
+    print("done feature")
     
     ### step 2. apply the modelList over featMat
     predMat <- test_xgboost(modelList, featMat)
 
-    
+    print("done predict")
     New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*dim(imgLR)[2], 4, 3))
     
     HR_Image_Data <- array(data = NA, c(dim(imgLR)[1]*2 , dim(imgLR)[2]*2, 3))
@@ -138,23 +139,28 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
     HR_Image <- Image(HR_Image_Data, colormode='Color')
     
-    print("=======")
-    
     True_HR_Image_Data <- imageData(readImage(paste0("../data/train_set/HR/",  "img", "_", sprintf("%04d", i), ".jpg")))
     
     MSE <- mean((True_HR_Image_Data - HR_Image_Data)^2)
     
-    print(MSE)
+    Total_MSE <- c(Total_MSE, MSE)
     
     PSNR <- 20*log10(1) - 10*log10(MSE)
     
-    print(PSNR)
+    Total_PSNR <- c(Total_PSNR, PSNR)
     
     # print(HR_Image)
     ### step 3. recover high-resolution from predMat and save in HR_dir
     writeImage(HR_Image, pathHR)
     
-    cat("Image", i, "Done !")
+    cat("Image", i, "Done !\n")
+    print(Sys.time())
   }
+  
+  print("Mean MSE : \n")
+  print(mean(Total_MSE))
+  print("Mean PSNR : \n")
+  print(mean(Total_PSNR))
+  
 }
 

@@ -20,6 +20,40 @@ get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
 }
 
 
+# Helper function for get neighbor and label for sample
+Get_Neighbor_and_Label_Pixel <- function(Index, LR_Data, HR_Data, Samples){
+  
+  Row_Index <- arrayInd(Samples[Index], dim(LR_Data))[1]
+  Col_Index <- arrayInd(Samples[Index], dim(LR_Data))[2]
+  
+  LR_up_left <- get_pixel_value(LR_Data, Row_Index-1, Col_Index-1)
+  LR_left <- get_pixel_value(LR_Data, Row_Index, Col_Index-1)
+  LR_bottom_left <- get_pixel_value(LR_Data, Row_Index+1, Col_Index-1)
+  LR_up <- get_pixel_value(LR_Data, Row_Index-1, Col_Index)
+  LR_center <- get_pixel_value(LR_Data, Row_Index, Col_Index)
+  LR_bottom <- get_pixel_value(LR_Data, Row_Index+1, Col_Index)
+  LR_up_right <- get_pixel_value(LR_Data, Row_Index-1, Col_Index+1)
+  LR_right <- get_pixel_value(LR_Data, Row_Index, Col_Index+1)
+  LR_bottom_right <- get_pixel_value(LR_Data, Row_Index+1, Col_Index+1)
+  
+  LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
+  
+  LR_Neighbor_value <- LR_Neighbor_value - LR_center
+  LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
+  LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
+  
+  # next select sub pixel from HR
+  HR_1 <- get_pixel_value(HR_Data, 2*Row_Index-1, 2*Col_Index-1)
+  HR_2 <- get_pixel_value(HR_Data, 2*Row_Index, 2*Col_Index-1)
+  HR_3 <- get_pixel_value(HR_Data, 2*Row_Index-1, 2*Col_Index)
+  HR_4 <- get_pixel_value(HR_Data, 2*Row_Index, 2*Col_Index)
+  
+  sub_pixels <- c(HR_1, HR_2, HR_3, HR_4)
+  sub_pixels <- sub_pixels - LR_center
+  return(list(LR_Neighbor_value = LR_Neighbor_value, sub_pixels = sub_pixels))
+}
+
+
 # Helper function get feature value
 Extract_Feature <- function(LR_Image, HR_Image, Color_Chanel, Sample_Size){
   
@@ -41,61 +75,29 @@ Extract_Feature <- function(LR_Image, HR_Image, Color_Chanel, Sample_Size){
   ### step 2.1. save (the neighbor 8 pixels - central pixel) in featMat
   ###           tips: padding zeros for boundary points
   ### step 2.2. save the corresponding 4 sub-pixels of imgHR in labMat
+  
+  # registerDoParallel(cores=2)
+  # foreach(index = 1:Sample_Size) %dopar% {
+  #   
+  #   Result <- Get_Neighbor_and_Label_Pixel(index, LR_image_data_chanel, HR_image_data_chanel, Sample_Points)
+  #   
+  #   Result_LR_Neighbor_value[index, ] <- Result$LR_Neighbor_value
+  #   
+  #   Result_sub_pixels[index,] <- Result$sub_pixels
+  #   
+  # }
+  
   for (index in c(1:Sample_Size)) {
     
-    Row_Index <- arrayInd(Sample_Points[index], dim(LR_image_data_chanel))[1]
-    Col_Index <- arrayInd(Sample_Points[index], dim(LR_image_data_chanel))[2]
+    Result <- Get_Neighbor_and_Label_Pixel(index, LR_image_data_chanel, HR_image_data_chanel, Sample_Points)
     
-    LR_up_left <- get_pixel_value(LR_image_data_chanel, Row_Index-1, Col_Index-1)
-    LR_left <- get_pixel_value(LR_image_data_chanel, Row_Index, Col_Index-1)
-    LR_bottom_left <- get_pixel_value(LR_image_data_chanel, Row_Index+1, Col_Index-1)
-    LR_up <- get_pixel_value(LR_image_data_chanel, Row_Index-1, Col_Index)
-    LR_center <- get_pixel_value(LR_image_data_chanel, Row_Index, Col_Index)
-    LR_bottom <- get_pixel_value(LR_image_data_chanel, Row_Index+1, Col_Index)
-    LR_up_right <- get_pixel_value(LR_image_data_chanel, Row_Index-1, Col_Index+1)
-    LR_right <- get_pixel_value(LR_image_data_chanel, Row_Index, Col_Index+1)
-    LR_bottom_right <- get_pixel_value(LR_image_data_chanel, Row_Index+1, Col_Index+1)
+    Result_LR_Neighbor_value[index, ] <- Result$LR_Neighbor_value
     
-    LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
-    
-    LR_Neighbor_value <- LR_Neighbor_value - LR_center
-    LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
-    LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
-    
-    Result_LR_Neighbor_value[index, ] <- LR_Neighbor_value
-    
-    
-    # next select sub pixel from HR
-    HR_1 <- get_pixel_value(HR_image_data_chanel, 2*Row_Index-1, 2*Col_Index-1)
-    HR_2 <- get_pixel_value(HR_image_data_chanel, 2*Row_Index, 2*Col_Index-1)
-    HR_3 <- get_pixel_value(HR_image_data_chanel, 2*Row_Index-1, 2*Col_Index)
-    HR_4 <- get_pixel_value(HR_image_data_chanel, 2*Row_Index, 2*Col_Index)
-
-    sub_pixels <- c(HR_1, HR_2, HR_3, HR_4)
-    sub_pixels <- sub_pixels - LR_center
-    Result_sub_pixels[index,] <- sub_pixels
-    
-    # print(which(is.na(sub_pixels)))
-    # 
-    if(length(which(is.na(sub_pixels)))>0){
-      print("========")
-      print(nrow(LR_image_data_chanel))
-      print(ncol(LR_image_data_chanel))
-      print("========")
-      print(nrow(HR_image_data_chanel))
-      print(ncol(HR_image_data_chanel))
-      print("========")
-      print(Row_Index)
-      print(Col_Index)
-      print(2*Row_Index-1)
-      print(2*Col_Index-1)
-      print(2*Row_Index)
-      print(2*Col_Index-1)
-      print(2*Row_Index-1)
-      print("========")
-    }
+    Result_sub_pixels[index,] <- Result$sub_pixels
     
   }
+  
+  
   return(list(LR_Neighbor_value = Result_LR_Neighbor_value, sub_pixels = Result_sub_pixels)) 
   
 }
@@ -153,36 +155,21 @@ feature <- function(LR_dir, HR_dir, n_points=1000){
     
     Result_Feature_sub_pixels_Blue <- Result_Feature_Blue$sub_pixels
     
-    # if(i == 3){
-    #   print(Result_Feature_LR_Neighbor_value_Red[1:5, ])
-    #   print(LR_image_data[1:5,1:5,1])
-    #   print(Result_Feature_sub_pixels_Red[1:5, ])
-    #   print(HR_image_data[1:5,1:5,1])
-    #   print(Result_Feature_LR_Neighbor_value_Green[1:5, ])
-    #   print(LR_image_data[1:5,1:5,2])
-    #   print(Result_Feature_sub_pixels_Green[1:5, ])
-    #   print(LR_image_data[1:5,1:5,2])
-    #   print(Result_Feature_LR_Neighbor_value_Blue[1:5, ])
-    #   print(LR_image_data[1:5,1:5,3])
-    # }
-    
-    for (Value_Index in c(1:n_points)) {
+    # print(Result_Feature_LR_Neighbor_value_Red)
+    # print(featMat[Mat_Index:(Mat_Index+n_points), , 1])
+    Result_Feature_LR_Neighbor_value_Red
+    featMat[Mat_Index:(Mat_Index+n_points-1), , 1] <- Result_Feature_LR_Neighbor_value_Red
+    labMat[Mat_Index:(Mat_Index+n_points-1), , 1] <- Result_Feature_sub_pixels_Red
       
-      featMat[Mat_Index, , 1] <- Result_Feature_LR_Neighbor_value_Red[Value_Index,]
-      labMat[Mat_Index, , 1] <- Result_Feature_sub_pixels_Red[Value_Index,]
+    featMat[Mat_Index:(Mat_Index+n_points-1), , 2] <- Result_Feature_LR_Neighbor_value_Green
+    labMat[Mat_Index:(Mat_Index+n_points-1), , 2] <- Result_Feature_sub_pixels_Green
       
-      featMat[Mat_Index, , 2] <- Result_Feature_LR_Neighbor_value_Green[Value_Index,]
-      labMat[Mat_Index, , 2] <- Result_Feature_sub_pixels_Green[Value_Index,]
-      
-      featMat[Mat_Index, , 3] <- Result_Feature_LR_Neighbor_value_Blue[Value_Index,]
-      labMat[Mat_Index, , 3] <- Result_Feature_sub_pixels_Blue[Value_Index,]
+    featMat[Mat_Index:(Mat_Index+n_points-1), , 3] <- Result_Feature_LR_Neighbor_value_Blue
+    labMat[Mat_Index:(Mat_Index+n_points-1), , 3] <- Result_Feature_sub_pixels_Blue
       # nrow(featMat[,,1])
       
       ### read LR/HR image pairs
-      Mat_Index <- Mat_Index + 1
-      
-      
-    }
+    Mat_Index <- Mat_Index + n_points
     
     cat("file", i, "\n")
 
