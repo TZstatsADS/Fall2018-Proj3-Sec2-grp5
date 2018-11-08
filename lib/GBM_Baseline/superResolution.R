@@ -5,7 +5,7 @@
 ### Author: Chengliang Tang
 ### Project 3
 
-source("../lib/test.R")
+# source("../../lib/GBM_Baseline/test.R")
 
 get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){	
   
@@ -71,20 +71,20 @@ superResolution <- function(LR_dir, HR_dir, modelList){
     Green_Chanel_Image_Data <- imageData(imgLR)[ , , 2]
     Blue_Chanel_Image_Data <- imageData(imgLR)[ , , 3]
     
-    cl <- makeCluster(3)
-    on.exit(stopCluster(cl))
+    # cl <- makeCluster(3)
+    # on.exit(stopCluster(cl))
     ### step 1. for each pixel and each channel in imgLR:
     ###           save (the neighbor 8 pixels - central pixel) in featMat
     ###           tips: padding zeros for boundary points
     
-    featMat[ , , 1] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Red_Chanel_Image_Data))
+    featMat[ , , 1] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Red_Chanel_Image_Data))
     
-    featMat[ , , 2] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Green_Chanel_Image_Data))
+    featMat[ , , 2] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Green_Chanel_Image_Data))
     
-    featMat[ , , 3] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Blue_Chanel_Image_Data))
+    featMat[ , , 3] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Blue_Chanel_Image_Data))
     
-    stopCluster(cl)
-    
+    # stopCluster(cl)
+    # 
     ### step 2. apply the modelList over featMat
     predMat <- test(modelList, featMat)
     
@@ -114,15 +114,15 @@ superResolution <- function(LR_dir, HR_dir, modelList){
     # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
     HR_Image <- Image(HR_Image_Data, colormode='Color')
     
-    True_HR_Image_Data <- imageData(readImage(paste0("../data/train_set/HR/",  "img", "_", sprintf("%04d", i), ".jpg")))
-    
-    MSE <- mean((True_HR_Image_Data - HR_Image_Data)^2)
-    
-    Total_MSE <- c(Total_MSE, MSE)
-    
-    PSNR <- 20*log10(1) - 10*log10(MSE)
-    
-    Total_PSNR <- c(Total_PSNR, PSNR)
+    # True_HR_Image_Data <- imageData(readImage(paste0("../data/train_set/HR/",  "img", "_", sprintf("%04d", i), ".jpg")))
+    # 
+    # MSE <- mean((True_HR_Image_Data - HR_Image_Data)^2)
+    # 
+    # Total_MSE <- c(Total_MSE, MSE)
+    # 
+    # PSNR <- 20*log10(1) - 10*log10(MSE)
+    # 
+    # Total_PSNR <- c(Total_PSNR, PSNR)
     
     # print(HR_Image)
     ### step 3. recover high-resolution from predMat and save in HR_dir
@@ -131,10 +131,10 @@ superResolution <- function(LR_dir, HR_dir, modelList){
     cat("Image", i, "Done !")
   }
   
-  print("Mean MSE : \n")
-  print(mean(Total_MSE))
-  print("Mean PSNR : \n")
-  print(mean(Total_PSNR))
+  # print("Mean MSE : \n")
+  # print(mean(Total_MSE))
+  # print("Mean PSNR : \n")
+  # print(mean(Total_PSNR))
   
 }
 

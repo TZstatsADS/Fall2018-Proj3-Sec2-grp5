@@ -169,6 +169,7 @@ Feed the final training model with the completely holdout testing data.
   + Output: construct high-resolution versions for each low-resolution test image.
 ```{r superresolution}
 source("../lib/GBM_Baseline/superResolution.R")
+source("../lib/GBM_Baseline/test.R")
 test_dir <- "../data/test_set/GBM_Baseline/" # This will be modified for different data sets.
 test_LR_dir <- paste(test_dir, "LR/", sep="")
 test_HR_dir <- paste(test_dir, "HR/", sep="")
