@@ -17,25 +17,27 @@ Term: Fall 2018
 
   + Our goal is to use machine learning method to enhance the resolution of blurry and low-resolution images so that we can get high resolution images.
 
-	+ Our baseline model is GBM Gradient Boosting Machines with depth equals to 1. Then we use XGBoost to improve our model by tuning different parameters, we use cross validation to find the best parameter, so the best depth is 7, and best nrounds is 200.
+	+ Our baseline model is GBM Gradient Boosting Machines with depth equals to 1. Then we use XGBoost to improve our model by tuning different parameters, we use cross validation to find the best parameter, so the best depth is 4, and best nrounds is 100.
 	
 	+ Another improve model we have is 5 by 5 features, so we change the feature size so that more information will be included, and we also use use XGBoost and cross validation to find the best parameter.
 	
 	+ For the baseline model(GBM), the main file is GBM_Baseline, and also the function used in lib/GBM_Baseline folder.	
 	
-	+ For the XGBoost with 3 by 3 feature, the main file is XGB_3_3, and also the function used in lib/XGB folder.
+	+ For the XGBoost with 3 by 3 feature, the main file is XGB_3_3, and also the function used in lib/XGB folder with feature.R and superresolution.R.
 	
-	+ For the XGBoost with 5 by 5 feature, the main file is XGB_5_5, and also the function used in lib/XGB folder, the feature function we new feature2 and superresolution function we use superresolution2
+	+ For the XGBoost with 5 by 5 feature, the main file is XGB_5_5, and also the function used in lib/XGB folder with feature2.R and superresolution2.R. (However, the result for XGBoost is not so good, we think it is due to the equal weight of all the 24 features. So we think using kernel function to give weights for different features can be explored in the future.)
 	
++ Our final selected model is XGBoost with 3 by 3 features. And the errors are: MSE around 0.00025 and PSNR around 27.
+
 **Contribution statement**: ([default](doc/a_note_on_contributions.md)) 
 
-  + Baseline Model: Zhongce Ji(main contribution), Jiaqian Yu(main contribution)
+  + Baseline Model: Zhongce Ji(major contributor), Jiaqian Yu(major contributor)
   + Improved Model:
-       +XGBoost part: Zhongce Ji
-       +Improved Feature part: Jiaqian Yu
-       +CNN part: Jiayi Cui(equal contribution)
-       +Model implementation and parameter tunning: Sheng Wang (equal contribution) 
-  + Tensorflow bilinear interpolation algorithm: Samuel Kolins(little contribution)
+       + XGBoost and parameter tunning: Zhongce Ji
+       + Improve Feature and Speed: Jiaqian Yu
+       + CNN part: Jiayi Cui(equal contributor)
+       + Model implementation: Sheng Wang (equal contributor) 
+  + Tensorflow bilinear interpolation algorithm: Samuel Kolins(little contributor)
   + Presentation and PPT: Sheng Wang
   + All team members approve our work presented in this GitHub repository including this contributions statement. 
 
