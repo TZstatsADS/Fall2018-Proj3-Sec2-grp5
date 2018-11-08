@@ -16,10 +16,13 @@ if(!require("gbm")){
   install.packages("gbm")
 }
 
+if(!require("xgboost")){
+  install.packages("xgboost")
+}
+
 library("EBImage")
 library("gbm")
 library("xgboost")
-library("doParallel")
 ```
 
 
@@ -29,7 +32,7 @@ Set the working directory to the image folder. Specify the training and the test
 
 ```{r wkdir, eval=FALSE}
 set.seed(2018)
-setwd("~/Desktop/Fall18/GR5243_ADS/Assignment3/Fall2018-Proj3-Sec2-grp5/doc")
+# setwd("~/Desktop/Fall18/GR5243_ADS/Assignment3/Fall2018-Proj3-Sec2-grp5/doc")
 # here replace it with your own path or manually set it in RStudio to where this rmd file is located. 
 # use relative path for reproducibility
 ```
