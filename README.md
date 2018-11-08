@@ -5,13 +5,13 @@
 
 Term: Fall 2018
 
-+ Team #
++ Team 5
 + Team members
-	+ team member 1
-	+ team member 2
-	+ team member 3
-	+ team member 4
-	+ team member 5
+	+ Jiayi Cui
+	+ Zhongce Ji
+	+ Samuel Kolins
+	+ Sheng Wang
+	+ Jiaqian Yu
 
 + Project summary: In this project, we created a classification engine for enhance the resolution of images. 
 	
