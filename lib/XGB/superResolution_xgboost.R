@@ -7,20 +7,22 @@
 
 source("../lib/XGB/test_xgboost.R")
 # helper function to get the value for pixel
-get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
-  
-  if( Given_Row_Index <= 0 | Given_Row_Index > nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index > ncol(All_value) ){
-    return(NA)
-  }
-  
-  else{
-    return(All_value[Given_Row_Index, Given_Col_Index])
-  }
-  
-}
+
 
 # helper function to get the value for the neighbor 8 pixels - central pixel
 get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
+  
+  get_pixel_value <- function(All_value, Given_Row_Index, Given_Col_Index){
+    
+    if( Given_Row_Index <= 0 | Given_Row_Index > nrow(All_value) | Given_Col_Index <= 0 | Given_Col_Index > ncol(All_value) ){
+      return(NA)
+    }
+    
+    else{
+      return(All_value[Given_Row_Index, Given_Col_Index])
+    }
+    
+  }
   
   Row_Index <- arrayInd(Given_Index, dim(Chanel_Data))[1]
   Col_Index <- arrayInd(Given_Index, dim(Chanel_Data))[2]
@@ -81,7 +83,7 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     
     
     print("start predict")
-    # cl <- makeCluster(3)
+    # 
     # registerDoParallel(cl)
     # foreach(p = 1:3) %dopar% {
     #   print(do.call(rbind, lapply(c(1:length(imageData(imgLR)[ , , p])), get_neighbor_pixel_value, Chanel_Data = imageData(imgLR)[ , , p])))
@@ -93,11 +95,21 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     # print(head(featMat[,,2]))
     # print(head(featMat[,,3]))
     print(Sys.time())
-    featMat[ , , 1] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Red_Chanel_Image_Data))
+    cl <- makeCluster(3)
+    
+    featMat[ , , 1] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Red_Chanel_Image_Data))
+   
+    featMat[ , , 2] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Green_Chanel_Image_Data))
+    
+    featMat[ , , 3] <- do.call(rbind, parLapply(cl, c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Blue_Chanel_Image_Data))
+    
+    print(Sys.time())
+    print("done!!!!!!")
+    print(Sys.time())
+    
+    stopCluster(cl)
+    
 
-    featMat[ , , 2] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Green_Chanel_Image_Data))
-
-    featMat[ , , 3] <- do.call(rbind, lapply(c(1:length(Red_Chanel_Image_Data)), get_neighbor_pixel_value, Chanel_Data = Blue_Chanel_Image_Data))
     print(Sys.time())
     print("done feature")
     

@@ -84,16 +84,16 @@ extra_label <- read.csv(train_label_path, colClasses=c("NULL", NA, NA))
   + Output: an RData file that contains extracted features and corresponding responses
 
 ```{r feature}
-source("../lib/feature.R")
+source("../lib/feature2.R")
 
 tm_feature_train <- NA
 if(run.feature.train){
-  tm_feature_train <- system.time(dat_train <- feature(train_LR_dir, train_HR_dir))
+  tm_feature_train <- system.time(dat_train <- feature2(train_LR_dir, train_HR_dir))
   feat_train <- dat_train$feature
   label_train <- dat_train$label
 }
 
-save(dat_train, file="../output/feature_train.RData")
+save(dat_train, file="../output/feature_train2.RData")
 ```
 
 
@@ -124,14 +124,14 @@ if(run.cv){
     cat("k=", k, "\n")
     err_cv_xgboost[k,] <- cv.function_xgboost(feat_train, label_train, model_values[k], model_depth[k], K)
   }
-  save(err_cv_xgboost, file="../output/XGB_3_3/err_cv_xgboost.RData")
+  save(err_cv_xgboost, file="../output/XGB_5_5/err_cv_xgboost.RData")
 }
 ```
 
 Visualize cross-validation results. 
 ```{r cv_vis}
 if(run.cv){
-  load("../output/XGB_3_3/err_cv_xgboost.RData")
+  load("../output/XGB_5_5/err_cv_xgboost.RData")
   plot(model_values, err_cv_xgboost[,1], xlab="Interaction Depth", ylab="CV Error",
        main="Cross Validation Error", type="n", ylim=c(0, 0.25))
   points(model_values, err_cv_xgboost[,1], col="blue", pch=16)
@@ -155,8 +155,8 @@ par_best <- list(depth=model_best)
 * Train the model with the entire training set using the selected model (model parameter) via cross-validation.
 ```{r final_train}
 tm_train=NA
-tm_train <- system.time(fit_train_xgboost_3_3 <- train_xgboost(feat_train, label_train, par_best))
-save(fit_train_xgboost_3_3, file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
+tm_train <- system.time(fit_train_xgboost_5_5 <- train_xgboost(feat_train, label_train, par_best))
+save(fit_train_xgboost_5_5, file="../output/XGB_5_5/fit_train_xgboost_5_5.RData")
 ```
 
 ### Step 5: Super-resolution for test images
@@ -167,14 +167,14 @@ Feed the final training model with the completely holdout testing data.
   + Input: an R object that contains tuned predictors.
   + Output: construct high-resolution versions for each low-resolution test image.
 ```{r superresolution}
-source("../lib/XGB/superResolution_xgboost.R")
-test_dir <- "../data/test_set/XGB_3_3/" # This will be modified for different data sets.
+source("../lib/XGB/superResolution2.R")
+test_dir <- "../data/test_set/XGB_5_5/" # This will be modified for different data sets.
 test_LR_dir <- paste(test_dir, "LR/", sep="")
 test_HR_dir <- paste(test_dir, "HR/", sep="")
 
 tm_test=NA
 if(run.test){
-  load(file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
-  tm_test <- system.time(superResolution_xgboost(test_LR_dir, test_HR_dir, fit_train_xgboost))
+  load(file="../output/XGB_5_5/fit_train_xgboost_5_5.RData")
+  tm_test <- system.time(superResolution2(test_LR_dir, test_HR_dir, fit_train_xgboost))
 }
 ```
