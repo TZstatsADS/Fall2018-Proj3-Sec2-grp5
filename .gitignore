@@ -9,6 +9,12 @@
 /doc/main.nb.html
 /data/test_set/GBM_Baseline/HR/*.jpg
 /data/test_set/GBM_Baseline/LR/*.jpg
+/data/test_set/XGB_3_3/HR/*.jpg
+/data/test_set/XGB_3_3/LR/*.jpg
+/data/test_set/XGB_5_5/HR/*.jpg
+/data/test_set/XGB_5_5/LR/*.jpg
+/data/test_set/XGB_7_7/HR/*.jpg
+/data/test_set/XGB_7_7/LR/*.jpg
 /data/train_set/HR/*.jpg
 /data/train_set/LR/*.jpg
 /data/*.RData
