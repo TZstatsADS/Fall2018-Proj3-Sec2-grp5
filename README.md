@@ -29,11 +29,13 @@ Term: Fall 2018
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md)) 
 
-  + Baseline 3 by 3: Zhongce Ji, Jiaqian Yu, Sheng Wang, Jiayi Cui
-  + XGBoost 3 by 3: Zhongce Ji, Jiaqian Yu, Sheng Wang
-  + XGBoost 5 by 5: Zhongce Ji, Jiaqian Yu
-  + CNN: Jiayi Cui, 
-  + Tensorflow bilinear interpolation algorithm: Samuel Kolins
+  + Baseline Model: Zhongce Ji(main contribution), Jiaqian Yu(main contribution)
+  + Improved Model:
+       XGBoost part: Zhongce Ji
+       Improved Feature part: Jiaqian Yu
+       CNN part: Jiayi Cui(equal contribution)
+       Model implementation and parameter tunning: Sheng Wang (equal contribution) 
+  + Tensorflow bilinear interpolation algorithm: Samuel Kolins(little contribution)
   + Presentation and PPT: Sheng Wang
   + All team members approve our work presented in this GitHub repository including this contributions statement. 
 
