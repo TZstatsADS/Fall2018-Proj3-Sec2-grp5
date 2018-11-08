@@ -36,22 +36,12 @@ get_neighbor_pixel_value <- function(Chanel_Data, Given_Index){
   LR_bottom_right <- get_pixel_value(Chanel_Data, Row_Index+1, Col_Index+1)
   
   LR_Neighbor_value <- c(LR_up_left, LR_left, LR_bottom_left, LR_up, LR_bottom, LR_up_right, LR_right, LR_bottom_right)
-  
-  # if(Given_Index == 500){
-  #   print("======")
-  #   print(LR_Neighbor_value)
-  #   
-  # }
-  
+
   
   LR_Neighbor_value <- LR_Neighbor_value - LR_center
   LR_Neighbor_NA_index <- which(is.na(LR_Neighbor_value))
   LR_Neighbor_value[LR_Neighbor_NA_index] <- 0
-  # if(Given_Index == 500){
-  #   print("======")
-  #   print(LR_Neighbor_value)
-  #   
-  # }
+
   return(LR_Neighbor_value)
   
 }
@@ -63,8 +53,6 @@ get_center_pixel_value <- function(Chanel_Data, Given_Index){
   Col_Index <- arrayInd(Given_Index, dim(Chanel_Data))[2]
   return(get_pixel_value(Chanel_Data, Row_Index, Col_Index))
 }
-
-
 
 
 superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
@@ -91,8 +79,6 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     Green_Chanel_Image_Data <- imageData(imgLR)[ , , 2]
     Blue_Chanel_Image_Data <- imageData(imgLR)[ , , 3]
     
-    # print(imageData(imgLR)[,,1])
-    # print(dim(Red_Chanel_Image_Data))
     
     ### step 1. for each pixel and each channel in imgLR:
     ###           save (the neighbor 8 pixels - central pixel) in featMat
@@ -116,37 +102,18 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     
     ### step 2. apply the modelList over featMat
     predMat <- test_xgboost(modelList, featMat)
-    
-    # print(predMat)
+
     
     New_Image_Data <- array(data = predMat, c(dim(imgLR)[1]*dim(imgLR)[2], 4, 3))
     
     HR_Image_Data <- array(data = NA, c(dim(imgLR)[1]*2 , dim(imgLR)[2]*2, 3))
     
-    print(dim(HR_Image_Data))
-    
-    # Then for each color channel
-    
-    # for (colorChannel in c(1:3)) {
-    #   
-    #   New_Image_Data[, , 1] <- New_Image_Data[, , 1]  + featMat_center[, , 1]
-    #   
-    #   New_Image_Data[, , 2] <- New_Image_Data[, , 2]  + featMat_center[, , 2]
-    #   
-    #   New_Image_Data[, , 3] <- New_Image_Data[, , 3]  + featMat_center[, , 3]
-    #   
-    # }
     
     for (index in c(1:nrow(New_Image_Data[,,1]))) {
       
       Row_i <- arrayInd(index, dim(Red_Chanel_Image_Data))[1]
       Col_i <- arrayInd(index, dim(Red_Chanel_Image_Data))[2]
-      # print(index)
-      # print(Row_i)
-      # print(Col_i)
-      # print(2*Row_i)
-      # print(2*Col_i)
-      # print(HR_Image_Data[2*Row_i, 2*Col_i-1,1])
+
       
       # In Red Channel
       HR_Image_Data[2*Row_i, 2*Col_i-1,1] <- New_Image_Data[index, 1, 1] + get_pixel_value(Red_Chanel_Image_Data, Row_i, Col_i)
@@ -171,6 +138,17 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
     # HR_Image <- Image(predMat, dim=c(dim(imgLR)[1]*2, dim(imgLR)[2]*2, 3), colormode='Color')
     HR_Image <- Image(HR_Image_Data, colormode='Color')
     
+    print("=======")
+    
+    True_HR_Image_Data <- imageData(readImage(paste0("../data/train_set/HR/",  "img", "_", sprintf("%04d", i), ".jpg")))
+    
+    MSE <- mean((True_HR_Image_Data - HR_Image_Data)^2)
+    
+    print(MSE)
+    
+    PSNR <- 20*log10(1) - 10*log10(MSE)
+    
+    print(PSNR)
     
     # print(HR_Image)
     ### step 3. recover high-resolution from predMat and save in HR_dir

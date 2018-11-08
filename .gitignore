@@ -6,9 +6,10 @@
 /output/.DS_Store
 /output/*.RData
 /data/train_set/*.csv
-/data/train_set/HR
-/data/train_set/LR
 /doc/main.nb.html
-/data/test_set
+/data/test_set/GBM_Baseline/HR/*.jpg
+/data/test_set/GBM_Baseline/LR/*.jpg
+/data/train_set/HR/*.jpg
+/data/train_set/LR/*.jpg
 /data/*.RData
 /doc/.Rhistory
