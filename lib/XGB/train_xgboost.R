@@ -41,8 +41,8 @@ train_xgboost <- function(dat_train, label_train, par=NULL){
     fit_xgboost <- xgboost(data = featMat, label = labMat,
                            max_depth = depth,
                            nthread = 3,
-                           eta = 0.5,
-                           nrounds = 200, verbose = 0)
+                           eta = 0.1,
+                           nrounds = 20, verbose = 0)
     cat("i = ", i)
     modelList[[i]] <- list(fit=fit_xgboost)
   }
