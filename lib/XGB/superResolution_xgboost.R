@@ -63,7 +63,7 @@ superResolution_xgboost <- function(LR_dir, HR_dir, modelList){
   Total_PSNR <- c()
   
   ### read LR/HR image pairs
-  for(i in 1:n_files){
+  for(i in 1:20){
     
     print(Sys.time())
     imgLR <- readImage(paste0(LR_dir,  "img", "_", sprintf("%04d", i), ".jpg"))

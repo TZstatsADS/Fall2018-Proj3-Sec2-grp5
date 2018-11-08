@@ -157,6 +157,7 @@ par_best <- list(depth=model_best)
 * Train the model with the entire training set using the selected model (model parameter) via cross-validation.
 ```{r final_train}
 tm_train=NA
+par_best <- NULL
 tm_train <- system.time(fit_train_xgboost_3_3 <- train_xgboost(feat_train, label_train, par_best))
 save(fit_train_xgboost_3_3, file="../output/XGB_3_3/fit_train_xgboost_3_3.RData")
 ```
@@ -180,3 +181,14 @@ if(run.test){
   tm_test <- system.time(superResolution_xgboost(test_LR_dir, test_HR_dir, fit_train_xgboost))
 }
 ```
+
+### Summarize Running Time
+Prediction performance matters, so does the running times for constructing features and for training the model, especially when the computation resource is limited. 
+```{r running_time}
+cat("Time for constructing training features=", tm_feature_train[1], "s \n")
+cat("Time for constructing testing features=", tm_feature_test[1], "s \n")
+cat("Time for training model=", tm_train[1], "s \n")
+cat("Time for super-resolution=", tm_test[1], "s \n")
+```
+
+
